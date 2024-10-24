@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Bracket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .bracket {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            margin: 0 10px;
+        }
+        .match {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+            margin: 5px 0;
+            background-color: white;
+            position: relative;
+        }
+        .line {
+            position: absolute;
+            left: 50%;
+            width: 2px;
+            background: #333;
+        }
+        .line.vertical {
+            height: 20px;
+            top: 100%;
+            margin-left: -1px;
+        }
+        .line.horizontal {
+            width: 40px;
+            height: 2px;
+            top: 50%;
+            left: 100%;
+            margin-top: -1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bracket" id="bracket"></div>
+
+<script>
+    const teams = [
+        { name: "Team A" },
+        { name: "Team B" },
+        { name: "Team C" },
+        { name: "Team D" },
+        { name: "Team E" },
+        { name: "Team F" },
+        { name: "Team G" },
+        { name: "Team H" }
+    ];
+
+    function createBracket(teams) {
+        const rounds = Math.ceil(Math.log2(teams.length));
+        const bracketDiv = document.getElementById('bracket');
+        
+        for (let round = 0; round < rounds; round++) {
+            const roundDiv = document.createElement('div');
+            roundDiv.className = 'round';
+            
+            const matchesPerRound = Math.pow(2, rounds - round - 1);
+            
+            for (let match = 0; match < matchesPerRound; match++) {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'match';
+                
+                const team1Index = match * 2;
+                const team2Index = match * 2 + 1;
+                
+                const team1 = teams[team1Index] ? teams[team1Index].name : '';
+                const team2 = teams[team2Index] ? teams[team2Index].name : '';
+
+                matchDiv.innerHTML = `${team1} vs ${team2}`;
+                roundDiv.appendChild(matchDiv);
+            }
+            bracketDiv.appendChild(roundDiv);
+        }
+    }
+
+    createBracket(teams);
+</script>
+
+</body>
+</html>

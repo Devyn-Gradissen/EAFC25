@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Bracket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .bracket {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .round {
+            margin: 20px;
+        }
+
+        .match {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 150px;
+            text-align: center;
+            background-color: #f7f7f7;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        input[type="number"] {
+            padding: 5px;
+            width: 50px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tournament Bracket</h1>
+
+        <div>
+            <input type="text" id="playerName" placeholder="Enter player name">
+            <button onclick="addPlayer()">Add Player</button>
+        </div>
+
+        <div id="bracket" class="bracket"></div>
+        <button onclick="nextRound()">Submit Scores and Move to Next Round</button>
+    </div>
+
+    <script>
+        let players = [];
+        let currentRound = [];
+
+        function addPlayer() {
+            const playerNameInput = document.getElementById("playerName");
+            const playerName = playerNameInput.value.trim();
+
+            if (playerName === "") {
+                alert("Please enter a valid player name.");
+                return;
+            }
+
+            players.push({ name: playerName, score: 0 });
+            playerNameInput.value = "";
+
+            updateBracket();
+        }
+
+        function updateBracket() {
+            const bracket = document.getElementById("bracket");
+            bracket.innerHTML = ""; // Clear the bracket
+
+            if (players.length > 1) {
+                currentRound = [...players];
+
+                renderBracket(currentRound);
+            }
+        }
+
+        function renderBracket(roundPlayers) {
+            const bracket = document.getElementById("bracket");
+            const roundDiv = document.createElement("div");
+            roundDiv.classList.add("round");
+            roundDiv.innerHTML = `<h3>Round ${Math.log2(players.length)} Matches</h3>`;
+
+            for (let i = 0; i < roundPlayers.length; i += 2) {
+                if (i + 1 < roundPlayers.length) {
+                    const matchDiv = document.createElement("div");
+                    matchDiv.classList.add("match");
+                    matchDiv.innerHTML = `
+                        <div>${roundPlayers[i].name} vs ${roundPlayers[i + 1].name}</div>
+                        <input type="number" id="score-${i}" placeholder="Score" value="0">
+                        <input type="number" id="score-${i + 1}" placeholder="Score" value="0">
+                    `;
+                    roundDiv.appendChild(matchDiv);
+                } else {
+                    // Handle odd number of players, the last player moves to the next round automatically
+                    const matchDiv = document.createElement("div");
+                    matchDiv.classList.add("match");
+                    matchDiv.innerHTML = `<div>${roundPlayers[i].name} advances to the next round (no opponent)</div>`;
+                    roundDiv.appendChild(matchDiv);
+                }
+            }
+
+            bracket.appendChild(roundDiv);
+        }
+
+        function nextRound() {
+            const nextRound = [];
+
+            for (let i = 0; i < currentRound.length; i += 2) {
+                if (i + 1 < currentRound.length) {
+                    const score1 = parseInt(document.getElementById(`score-${i}`).value, 10);
+                    const score2 = parseInt(document.getElementById(`score-${i + 1}`).value, 10);
+
+                    if (score1 > score2) {
+                        nextRound.push(currentRound[i]);
+                    } else if (score2 > score1) {
+                        nextRound.push(currentRound[i + 1]);
+                    } else {
+                        // If scores are tied, we can decide to randomly select a winner or handle ties differently
+                        alert("It's a tie! Please adjust the scores.");
+                        return;
+                    }
+                } else {
+                    nextRound.push(currentRound[i]); // Odd number of players, pass player to the next round
+                }
+            }
+
+            currentRound = nextRound;
+            if (currentRound.length > 1) {
+                renderBracket(currentRound);
+            } else {
+                alert(`The winner is ${currentRound[0].name}!`);
+            }
+        }
+    </script>
+</body>
+</html>
