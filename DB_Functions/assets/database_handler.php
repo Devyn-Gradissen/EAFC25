@@ -2,7 +2,7 @@
 
 class DB_Handler { 
 
-    // Variables
+    // Public Variables
     public $username = "root";
     public $password = "";
     public $database = "eafc25_db";
@@ -14,7 +14,28 @@ class DB_Handler {
 
     }
 
-    // Class navigation
+    /* 
+    
+    Deze FUNCTION werkt als een navigatie naar de verschillende FUNCTIES die deze CLASS heeft.
+
+    De FUNCTION verwacht 2 parameters:
+        - $function STRING "function die je wil roepen"
+        - $data1 VAR "afhankelijk van de functie" OPTIONAL
+
+    In de main code kan je de verschillen FUNCTIONS aanroepen op deze manier
+
+        $db_handler = new DB_Handler();
+        $db_handler->handler("function", "data");
+
+    De functions die je kan roepen zijn;
+        - connect: "connect met de database"
+        - jsonConvert: "convert de $_POST array naar een JSON Array voor makkelijk gebruik in JAVASCRIPT"
+        - addUser: "deze function voegt spelers toe aan de database"
+        - requestUsers: "deze function roept alle spelers op en RETURNS ze als JSON arrays"
+        - playerForm: "dit is een volledig gestylde HTML form die samen werkt met de addUser FUNCTION"
+        - count: "deze function RETURNS een INT van de hoeveelheid spelers in de database"
+
+    */
     public function handler($function, $data1 = NULL) {
 
         switch ($function) {
@@ -27,14 +48,21 @@ class DB_Handler {
             case "addUser":
                 return $this->add_user($data1);
 
+            case "requestUsers" :
+                return $this->req_users();
+
             case "playerForm":
                 return $this->player_from();
+
+            case "count":
+                return $this->player_counter();
+
          }
 
     }
 
-    // == HTML Functions ==
 
+    // Complete form to add players working with the addUser function
     public function player_from() {
 
         ?>
@@ -92,11 +120,15 @@ class DB_Handler {
 
             <div class="playerForm">
 
+                <!-- form using $_POST --> 
                 <form method="POST">
+                    <!-- player name automatically gets trimmed to just the Initial --> 
                     <label for="name">Name:</label><br>
                         <input type="text" id="name" name="name"><br>
+                    <!-- player lastname --> 
                     <label for="lname">Last Name:</label><br>
                         <input type="text" id="lname" name="lname"><br>
+                    <!-- player division --> 
                     <label for="div">Division:</label><br>
                         <select id="div" name="div">
                             <option value="10">10</option>
@@ -110,7 +142,7 @@ class DB_Handler {
                             <option value="2">2</option>
                             <option value="1">1</option>
                         </select> <br>
-                    <!-- Send button -->
+                    <!-- send button -->
                     <input type="submit" value="Add Player" name="submit" id="submit">
                 </form>
 
@@ -125,6 +157,7 @@ class DB_Handler {
     // Establish the Database Connection
     public function db_connect(){ 
 
+        // making the connection with the public variables
         $connect = new mysqli($this->server, $this->username, $this->password, $this->database);
 
         if ($connect->connect_error) { 
@@ -139,6 +172,7 @@ class DB_Handler {
     public function json_encode_data($userdata) {
 
         if ($userdata != NULL) {
+            // encoding $userdata
             $converted_data = json_encode($userdata, JSON_PRETTY_PRINT);
 
             return $converted_data;
@@ -149,9 +183,10 @@ class DB_Handler {
 
     }
 
+    // Adding users to the database
     public function add_user($new_user) { 
 
-        var_dump($new_user);
+        //var_dump($new_user);
 
         // Setting up PDO
         $dsn = "mysql:host=$this->server;dbname=$this->database;charset=utf8mb4";
@@ -161,23 +196,68 @@ class DB_Handler {
         if ($new_user != NULL) {
             $new_user = json_decode($new_user, true);
 
+            // trimming to just the Initial
+            $only_initial = strtoupper(substr($new_user["name"],0,1));
+
+            // setting up the query
             $stmt = $pdo->prepare("INSERT INTO players (player_name, player_lname, player_div) VALUES (:player_name, :player_lname, :player_div)");
 
+            // executing the query
             $stmt->execute([
-                ':player_name' => $new_user['name'],
+                ':player_name' => $only_initial,
                 ':player_lname'=> $new_user['lname'],
                 ':player_div'=> $new_user['div']  
             ]);
 
-            echo "player added";
+            //echo "player added";
 
         } else {
             echo "ERROR: new user array = NULL";
         }
     }
 
+    // requesting all users from the database
     public function req_users() {
-        
+       
+        try {
+
+            // Setting up PDO
+            $dsn = "mysql:host=$this->server;dbname=$this->database;charset=utf8mb4";
+            $pdo = new PDO($dsn, $this->username, $this->password);
+
+            // setting up the query
+            $stmt = $pdo->prepare("SELECT * FROM players");
+            // executing the array
+            $stmt->execute();
+
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // encoding the data as JSON arrays
+            $userArray = json_encode($users);
+
+            return $userArray;
+
+        } catch (PDOException $e) {
+            return json_encode(['error' => $e-> getMessage()]);
+        }
+
+    }
+
+    // counting the users from the database
+    public function player_counter() {
+
+        // Setting up PDO
+        $dsn = "mysql:host=$this->server;dbname=$this->database;charset=utf8mb4";
+        $pdo = new PDO($dsn, $this->username, $this->password);
+
+            // Prepare and execute the query
+            $stmt = $pdo->query("SELECT COUNT(*) FROM players");
+
+            // Fetch the count as an integer
+            $count = (int) $stmt->fetchColumn();
+
+            return $count;
+
     }
 
 }
