@@ -1,0 +1,20 @@
+/* Init */
+:root {
+    --fifaMint: #07F468;
+    --fifaGrey: #161616;
+    --fifaWhiteSmoke: #f3f3f3; 
+}
+
+* {
+    font-family: Verdana;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: black;
+    color: white;
+}
+
+
+
