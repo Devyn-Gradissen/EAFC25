@@ -19,7 +19,7 @@ class DB_Handler {
     Deze FUNCTION werkt als een navigatie naar de verschillende FUNCTIES die deze CLASS heeft.
 
     De FUNCTION verwacht 2 parameters:
-        - $function STRING "function die je wil roepen"
+        - $function STRING "function die je wilt roepen"
         - $data1 VAR "afhankelijk van de functie" OPTIONAL
 
     In de main code kan je de verschillen FUNCTIONS aanroepen op deze manier
@@ -68,6 +68,12 @@ class DB_Handler {
         ?>
 
             <style>
+                :root{
+                --fifaMint: #07F468;
+                --fifaGrey: #161616;
+                --fifaWhiteSmoke: #f3f3f3;
+                }
+            
                 .playerForm {
                     width: 25%;
                     margin: 1rem;
