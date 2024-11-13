@@ -19,7 +19,7 @@ class DB_Handler {
     Deze FUNCTION werkt als een navigatie naar de verschillende FUNCTIES die deze CLASS heeft.
 
     De FUNCTION verwacht 2 parameters:
-        - $function STRING "function die je wilt roepen"
+        - $function STRING "function die je wil roepen"
         - $data1 VAR "afhankelijk van de functie" OPTIONAL
 
     In de main code kan je de verschillen FUNCTIONS aanroepen op deze manier
@@ -52,7 +52,7 @@ class DB_Handler {
                 return $this->req_users();
 
             case "playerForm":
-                return $this->player_from();
+                return $this->player_form();
 
             case "count":
                 return $this->player_counter();
@@ -63,17 +63,11 @@ class DB_Handler {
 
 
     // Complete form to add players working with the addUser function
-    public function player_from() {
+    public function player_form() {
 
         ?>
 
             <style>
-                :root{
-                --fifaMint: #07F468;
-                --fifaGrey: #161616;
-                --fifaWhiteSmoke: #f3f3f3;
-                }
-            
                 .playerForm {
                     width: 25%;
                     margin: 1rem;
@@ -189,6 +183,10 @@ class DB_Handler {
 
     }
 
+    public function add_admin() {
+        
+    }
+
     // Adding users to the database
     public function add_user($new_user) { 
 
@@ -203,15 +201,15 @@ class DB_Handler {
             $new_user = json_decode($new_user, true);
 
             // trimming to just the Initial
-            $only_initial = strtoupper(substr($new_user["name"],0,1));
+            $only_initial = strtoupper(substr($new_user["lname"],0,1));
 
             // setting up the query
             $stmt = $pdo->prepare("INSERT INTO players (player_name, player_lname, player_div) VALUES (:player_name, :player_lname, :player_div)");
 
             // executing the query
             $stmt->execute([
-                ':player_name' => $only_initial,
-                ':player_lname'=> $new_user['lname'],
+                ':player_name' => $new_user['name'],
+                ':player_lname'=> $only_initial,
                 ':player_div'=> $new_user['div']  
             ]);
 
