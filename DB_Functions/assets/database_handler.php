@@ -53,10 +53,18 @@ class DB_Handler {
 
             case "playerForm":
                 return $this->player_form();
+            
+            case "navbar":
+                return $this->navbar();
 
             case "count":
                 return $this->player_counter();
 
+            case "addAdmin":
+                return $this->add_admin($data1);
+
+            case "login":
+                return $this->login_admin($data1);
          }
 
     }
@@ -152,6 +160,73 @@ class DB_Handler {
 
     }
 
+
+    public function navbar(){
+
+        ?> 
+        
+            <style>
+                nav {
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                nav ul {
+                    list-style-type: none;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    align-items: center; /* Zorgt ervoor dat de items verticaal gecentreerd zijn */
+                    background-color: var(--fifaGrey);
+                    border-bottom: 1px solid white;
+                }
+                
+                nav ul li {
+                    display: inline-flex;
+                    align-items: center;
+                }
+                
+                .navbarLogo {
+                    width: auto; /* Past zich aan de inhoud aan */
+                    padding: 0;
+                }
+                
+                .navbarLogo img {
+                    max-height: 3rem; /* Past de afbeelding aan de hoogte van de navigatie aan */
+                    width: auto; /* Behoudt de verhoudingen */
+                    object-fit: contain; /* Zorgt ervoor dat de afbeelding binnen de container past */
+                }
+                
+                nav ul li a {
+                    display: block;
+                    color: white;
+                    font-weight: bold;
+                    text-align: center;
+                    padding: 1rem;
+                    text-decoration: none;
+                    background-color: var(--fifaGrey);
+                    transition: background-color 1s ease-in-out;
+                }
+                
+                nav ul li a:hover {
+                    background-color: #07F468;
+                    font-weight: bold;
+                }
+            </style>
+
+            <!-- navbar -->
+            <nav>
+                <ul>
+                    <li class="navbarLogo"><img src="./assets/img/ea-removebg.png"></li>
+                    <li><a href="#">Tournament</a></li>
+                    <li><a href="#">Add Player</a></li>
+                    <li><a href="#">Admin</a></li>
+                </ul>
+            </nav>
+        
+        <?php
+
+    }
     
 
     // Establish the Database Connection
@@ -183,8 +258,69 @@ class DB_Handler {
 
     }
 
-    public function add_admin() {
+    public function add_admin($new_admin) {
         
+        try{
+            // Setting up PDO
+            $dsn = "mysql:host=$this->server;dbname=$this->database;charset=utf8mb4";
+            $pdo = new PDO($dsn, $this->username, $this->password);
+
+            // setting up the query
+            $stmt = $pdo->prepare("INSERT INTO users (user_name, user_password) VALUES (:user_name, :user_password)");
+
+            // Bind parameters
+            $stmt->bindParam(':user_name', $new_admin['name']);
+            
+            // Hash the password for security before inserting
+            $hashedPassword = password_hash($new_admin['password'], PASSWORD_BCRYPT);
+            $stmt->bindParam(':user_password', $hashedPassword);
+
+            // Execute the query
+            $stmt->execute();
+
+            echo "User successfully registered!";
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
+
+
+
+    }
+
+    public function login_admin($login) {
+        try {
+            // Check if username and password are set in $_POST
+            if (!isset($login['name']) || !isset($login['password'])) {
+                echo "Username or password not provided!";
+                return;
+            }
+    
+            // Setting up PDO
+            $dsn = "mysql:host=$this->server;dbname=$this->database;charset=utf8mb4";
+            $pdo = new PDO($dsn, $this->username, $this->password);
+    
+            // Prepare and execute the SQL query to fetch the user by username
+            $stmt = $pdo->prepare("SELECT user_password FROM users WHERE user_name = :user_name");
+            $stmt->bindParam(':user_name', $login['name']);
+            $stmt->execute();
+    
+            // Fetch the user record
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            if ($user) {
+                // Verify the password
+                if (password_verify($login['password'], $user['user_password'])) {
+                    echo "Login successful!";
+                    // Optionally, set session variables or perform other login actions here
+                } else {
+                    echo "Invalid username or password.";
+                }
+            } else {
+                echo "User not found.";
+            }
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
     }
 
     // Adding users to the database
