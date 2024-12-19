@@ -28,12 +28,7 @@ class DB_Handler {
         $db_handler->handler("function", "data");
 
     De functions die je kan roepen zijn;
-        - connect: "connect met de database"
-        - jsonConvert: "convert de $_POST array naar een JSON Array voor makkelijk gebruik in JAVASCRIPT"
-        - addUser: "deze function voegt spelers toe aan de database"
-        - requestUsers: "deze function roept alle spelers op en RETURNS ze als JSON arrays"
-        - playerForm: "dit is een volledig gestylde HTML form die samen werkt met de addUser FUNCTION"
-        - count: "deze function RETURNS een INT van de hoeveelheid spelers in de database"
+
 
     */
     public function handler($function, $data1 = NULL) {
@@ -42,14 +37,14 @@ class DB_Handler {
             case "connect":
                 return $this->db_connect();
                 
-            case "jsonConvert":
+            case "jsonEncode":
                 return $this->json_encode_data($data1);
                 
-            case "addUser":
-                return $this->add_user($data1);
+            case "addPlayer":
+                return $this->add_player($data1);
 
-            case "requestUsers" :
-                return $this->req_users();
+            case "requestPlayers" :
+                return $this->req_players();
 
             case "playerForm":
                 return $this->player_form();
@@ -77,19 +72,19 @@ class DB_Handler {
 
             <style>
                 .playerForm {
-                    width: 25%;
+                    width: 50%;
                     margin: 1rem;
                     padding: 1rem;
                     color: var(--fifaWhiteSmoke);
                 }
 
                 .playerForm label {
-                    font-size: 20px;
+                    font-size: 26px;
                 }
 
                 .playerForm input {
                     font-family: Verdana;
-                    font-size: 20px;
+                    font-size: 26px;
                     padding: 0.5rem;
                     width: 100%;
                     color: var(--fifaWhiteSmoke);
@@ -100,7 +95,7 @@ class DB_Handler {
 
                 .playerForm select {
                     font-family: Verdana;
-                    font-size: 20px;
+                    font-size: 26px;
                     color: var(--fifaWhiteSmoke);
                     background-color: var(--fifaGrey);
                     border: solid 1px white;
@@ -111,6 +106,7 @@ class DB_Handler {
                 #submit {
                     background-color: var(--fifaMint);
                     margin-top: 1rem;
+                    padding: 1rem;
                     width: 50%;
                     border-radius: 2rem;
                     border: solid 1px var(--fifaMint);
@@ -123,6 +119,7 @@ class DB_Handler {
                     border-radius: 2rem;
                     border: solid 1px var(--fifaMint);
                     font-weight: bold;
+                    cursor: pointer;
                 }
             </style>
 
@@ -131,13 +128,13 @@ class DB_Handler {
                 <!-- form using $_POST --> 
                 <form method="POST">
                     <!-- player name automatically gets trimmed to just the Initial --> 
-                    <label for="name">Name:</label><br>
-                        <input type="text" id="name" name="name"><br>
+                    <label for="name">Name:</label><br><br>
+                        <input type="text" id="name" name="name"><br><br>
                     <!-- player lastname --> 
-                    <label for="lname">Last Name:</label><br>
-                        <input type="text" id="lname" name="lname"><br>
+                    <label for="lname">Last Name:</label><br><br>
+                        <input type="text" id="lname" name="lname"><br><br>
                     <!-- player division --> 
-                    <label for="div">Division:</label><br>
+                    <label for="div">Division:</label><br><br>
                         <select id="div" name="div">
                             <option value="10">10</option>
                             <option value="9">9</option>
@@ -169,6 +166,8 @@ class DB_Handler {
                 nav {
                     margin: 0;
                     padding: 0;
+                    width: 100vw;
+                    font-family: Verdana;
                 }
                 
                 nav ul {
@@ -217,10 +216,10 @@ class DB_Handler {
             <!-- navbar -->
             <nav>
                 <ul>
-                    <li class="navbarLogo"><img src="./assets/img/ea-removebg.png"></li>
-                    <li><a href="#">Tournament</a></li>
-                    <li><a href="#">Add Player</a></li>
-                    <li><a href="#">Admin</a></li>
+                    <li class="navbarLogo"><img src="./DB_Functions/assets/img/ea-removebg.png"></li>
+                    <li><a href="./index.php">Tournament</a></li>
+                    <li><a href="./add_player.php">Add Player</a></li>
+                    <li><a href="./login.php">Admin</a></li>
                 </ul>
             </nav>
         
@@ -253,7 +252,7 @@ class DB_Handler {
             return $converted_data;
 
         } else {
-            echo "ERROR: The data to convert = NULL";
+            // echo "ERROR: The data to convert = NULL";
         }
 
     }
@@ -324,7 +323,7 @@ class DB_Handler {
     }
 
     // Adding users to the database
-    public function add_user($new_user) { 
+    public function add_player($new_player) { 
 
         //var_dump($new_user);
 
@@ -333,20 +332,20 @@ class DB_Handler {
         $pdo = new PDO($dsn, $this->username, $this->password);
         
         // Decoding JSON_Array
-        if ($new_user != NULL) {
-            $new_user = json_decode($new_user, true);
+        if ($new_player != NULL) {
+            $new_player = json_decode($new_player, true);
 
             // trimming to just the Initial
-            $only_initial = strtoupper(substr($new_user["lname"],0,1));
+            $only_initial = strtoupper(substr($new_player["lname"],0,1));
 
             // setting up the query
             $stmt = $pdo->prepare("INSERT INTO players (player_name, player_lname, player_div) VALUES (:player_name, :player_lname, :player_div)");
 
             // executing the query
             $stmt->execute([
-                ':player_name' => $new_user['name'],
+                ':player_name' => $new_player['name'],
                 ':player_lname'=> $only_initial,
-                ':player_div'=> $new_user['div']  
+                ':player_div'=> $new_player['div']  
             ]);
 
             //echo "player added";
@@ -356,8 +355,45 @@ class DB_Handler {
         }
     }
 
+    public function del_player($return_URL) {
+
+            ini_set('display_errors', 1);
+            ini_set('display_startup_errors', 1);
+            error_reporting(E_ALL);
+
+            if (!isset($_GET['player_id']) || !is_numeric($_GET['player_id'])) {
+                echo "Invalid request.";
+                return;
+            }
+    
+            $player_id = intval($_GET['player_id']); // Sanitize the input
+     
+            // Setting up PDO
+            $dsn = "mysql:host=$this->server;dbname=$this->database;charset=utf8mb4";
+            $pdo = new PDO($dsn, $this->username, $this->password); 
+
+            try {
+                
+                $query = "DELETE FROM players WHERE player_id = :player_id";
+                $execute = $pdo->prepare($query);
+        
+                // Bind the parameter
+                $execute->bindParam(':player_id', $player_id, PDO::PARAM_INT);
+                $execute->execute();
+
+
+                header("Location: $return_URL");
+                exit();
+        
+            } catch (PDOException $e) {
+                // Handle any errors
+                echo "Error: " . $e->getMessage();
+            }
+
+    }
+
     // requesting all users from the database
-    public function req_users() {
+    public function req_players() {
        
         try {
 
