@@ -34,7 +34,7 @@ if (isset($_GET['fetch_players'])) {
         .tree-container {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: top;
             padding: 20px;
             gap: 20px;
         }
@@ -192,78 +192,84 @@ if (isset($_GET['fetch_players'])) {
         }
 
         function renderTree(treeRounds, containerId, treeSide) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
 
-    // Determine the maximum number of matches in the first round across both trees
-    const maxMatches = Math.max(
-        leftTreeRounds[0]?.length || 0,
-        rightTreeRounds[0]?.length || 0
-    );
+            // Determine the maximum number of matches in the first round across both trees
+            const maxMatches = Math.max(
+                leftTreeRounds[0]?.length || 0,
+                rightTreeRounds[0]?.length || 0
+            );
 
-    // Calculate spacing to center-align the brackets
-    const treeMatches = treeSide === 'Right' ? [...treeRounds].reverse() : treeRounds;
+            // Calculate spacing to center-align the brackets
+            const treeMatches = treeSide === 'Right' ? [...treeRounds].reverse() : treeRounds;
 
-    // Create padding to center the shorter tree
-    const paddingMatches = (maxMatches - (treeRounds[0]?.length || 0)) / 2;
+            // Create padding to center the shorter tree
+            const paddingMatches = (maxMatches - (treeRounds[0]?.length || 0)) / 2;
 
-    // Add empty divs as padding for the shorter tree
-    if (paddingMatches > 0) {
-        const paddingDiv = document.createElement('div');
-        paddingDiv.style.flexGrow = paddingMatches;
-        paddingDiv.style.height = `${paddingMatches * 2}rem`;
-        container.appendChild(paddingDiv);
-    }
-
-    treeMatches.forEach((round, reverseIndex) => {
-        const actualRoundIndex = treeSide === 'Right'
-            ? treeRounds.length - reverseIndex - 1
-            : reverseIndex;
-
-        const roundDiv = document.createElement('div');
-        roundDiv.classList.add('round');
-        roundDiv.innerHTML = `<h3>${treeSide} Round ${actualRoundIndex + 1}</h3>`;
-        container.appendChild(roundDiv);
-
-        round.forEach((match, matchIndex) => {
-            const matchDiv = document.createElement('div');
-            matchDiv.classList.add('match');
-
-            // Check if there is a solo player (no opponent)
-            if (!match.player2) {
-                matchDiv.innerHTML = `
-                    <div class="player">
-                        <span>${match.player1?.player_name || 'No Player'}</span>
-                        <span>Goes to the next round</span>
-                    </div>
-                `;
-            } else {
-                matchDiv.innerHTML = `
-                    <div class="player">
-                        <span>${match.player1?.player_name || 'No Player'}</span>
-                        <input type="number" value="${match.score1}" min="0"
-                            onchange="updateScore('${treeSide}', ${actualRoundIndex}, ${matchIndex}, 1, this)">
-                    </div>
-                    ${match.player2 ? `
-                    <div class="player">
-                        <span>${match.player2.player_name}</span>
-                        <input type="number" value="${match.score2}" min="0"
-                            onchange="updateScore('${treeSide}', ${actualRoundIndex}, ${matchIndex}, 2, this)">
-                    </div>` : ''}
-                `;
+            // Add empty divs as padding for the shorter tree
+            if (paddingMatches > 0) {
+                const paddingDiv = document.createElement('div');
+                paddingDiv.style.flexGrow = paddingMatches;
+                paddingDiv.style.height = `${paddingMatches * 2}rem`;
+                container.appendChild(paddingDiv);
             }
 
-            roundDiv.appendChild(matchDiv);
-        });
+            treeMatches.forEach((round, reverseIndex) => {
+                const actualRoundIndex = treeSide === 'Right'
+                    ? treeRounds.length - reverseIndex - 1
+                    : reverseIndex;
 
-        const submitButton = document.createElement('button');
-        submitButton.textContent = 'Submit Scores';
-        submitButton.onclick = () => submitRound(treeSide, actualRoundIndex);
-        roundDiv.appendChild(submitButton);
-    });
-}
+                const roundDiv = document.createElement('div');
+                roundDiv.classList.add('round');
+                roundDiv.innerHTML = `<h3>${treeSide} Round ${actualRoundIndex + 1}</h3>`;
+                container.appendChild(roundDiv);
 
+                round.forEach((match, matchIndex) => {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.classList.add('match');
 
+                    // Check if there is a solo player (no opponent)
+                    if (!match.player2) {
+                        matchDiv.innerHTML = `
+                            <div class="player">
+                                <span>${match.player1?.player_name || 'No Player'}</span>
+                                <span>Goes to the next round</span>
+                            </div>
+                        `;
+                    } else {
+                        matchDiv.innerHTML = `
+                            <div class="player">
+                                <span>${match.player1?.player_name || 'No Player'}</span>
+                                <input type="number" value="${match.score1}" min="0"
+                                    onchange="updateScore('${treeSide}', ${actualRoundIndex}, ${matchIndex}, 1, this)">
+                            </div>
+                            ${match.player2 ? `
+                            <div class="player">
+                                <span>${match.player2.player_name}</span>
+                                <input type="number" value="${match.score2}" min="0"
+                                    onchange="updateScore('${treeSide}', ${actualRoundIndex}, ${matchIndex}, 2, this)">
+                            </div>` : ''}
+                        `;
+                    }
+
+                    roundDiv.appendChild(matchDiv);
+                });
+
+                const submitButton = document.createElement('button');
+                submitButton.textContent = 'Submit Scores';
+                submitButton.onclick = () => submitRound(treeSide, actualRoundIndex);
+                roundDiv.appendChild(submitButton);
+
+                // Add a randomize button if the round is not yet submitted
+                if (!round.some(match => match.submitted)) {
+                    const randomizeButton = document.createElement('button');
+                    randomizeButton.textContent = 'Randomize';
+                    randomizeButton.onclick = () => randomizeRound(treeSide, actualRoundIndex);
+                    roundDiv.appendChild(randomizeButton);
+                }
+            });
+        }
 
         function updateScore(treeSide, roundIndex, matchIndex, player, input) {
             const tree = treeSide === 'Left' ? leftTreeRounds : rightTreeRounds;
@@ -272,69 +278,99 @@ if (isset($_GET['fetch_players'])) {
         }
 
         function submitRound(treeSide, roundIndex) {
-    const tree = treeSide === 'Left' ? leftTreeRounds : rightTreeRounds;
-    const currentRound = tree[roundIndex];
+            const tree = treeSide === 'Left' ? leftTreeRounds : rightTreeRounds;
+            const currentRound = tree[roundIndex];
 
-    // Check if the round has already been submitted
-    if (currentRound.some(match => match.submitted)) {
-        alert(`This ${treeSide} round has already been submitted!`);
-        return;
-    }
-
-    // Iterate over all matches and check if scores are filled in
-    for (const match of currentRound) {
-        if (!match.player2) {
-            // Solo player, auto-submit the match with the player advancing to the next round
-            match.score1 = 1; // Arbitrary score to indicate a win
-            match.score2 = 0;
-            match.submitted = true;
-        } else {
-            if (match.score1 === 0 && match.score2 === 0) {
-                alert("Fill in all scores before submitting!");
+            // Check if the round has already been submitted
+            if (currentRound.some(match => match.submitted)) {
+                alert(`This ${treeSide} round has already been submitted!`);
                 return;
             }
-            if (match.score1 === match.score2) {
-                alert("There cannot be a tie. Please resolve the scores!");
+
+            // Iterate over all matches and check if scores are filled in
+            for (const match of currentRound) {
+                if (!match.player2) {
+                    // Solo player, auto-submit the match with the player advancing to the next round
+                    match.score1 = 1; // Arbitrary score to indicate a win
+                    match.score2 = 0;
+                    match.submitted = true;
+                } else {
+                    if (match.score1 === 0 && match.score2 === 0) {
+                        alert("Fill in all scores before submitting!");
+                        return;
+                    }
+                    if (match.score1 === match.score2) {
+                        alert("There cannot be a tie. Please resolve the scores!");
+                        return;
+                    }
+                    match.submitted = true;
+                }
+            }
+
+            // Collect winners from the current round
+            let winners = currentRound.map(match =>
+                match.score1 > match.score2 ? match.player1 : match.player2
+            );
+
+            // Shuffle the winners for randomness
+            for (let i = winners.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [winners[i], winners[j]] = [winners[j], winners[i]];
+            }
+
+            // Create next round matches from the winners
+            const nextRound = [];
+            for (let i = 0; i < winners.length; i += 2) {
+                const player1 = winners[i];
+                const player2 = winners[i + 1] || null;
+                nextRound.push({ player1, player2, score1: 0, score2: 0, submitted: false });
+            }
+
+            // If there's only one match left and it has no second player, it's a winner
+            if (nextRound.length === 1 && nextRound[0].player2 === null) {
+                if (treeSide === 'Left') {
+                    leftTreeWinner = nextRound[0].player1;
+                } else {
+                    rightTreeWinner = nextRound[0].player1;
+                }
+                renderBrackets();
                 return;
             }
-            match.submitted = true;
+
+            // Add the next round to the tree
+            tree.push(nextRound);
+            renderBrackets();
         }
-    }
+        
+        function randomizeRound(treeSide, roundIndex) {
+            const tree = treeSide === 'Left' ? leftTreeRounds : rightTreeRounds;
+            const currentRound = tree[roundIndex];
 
-    // Collect winners from the current round
-    let winners = currentRound.map(match =>
-        match.score1 > match.score2 ? match.player1 : match.player2
-    );
+            // Extract all players in the round
+            const players = [];
+            currentRound.forEach(match => {
+                if (match.player1) players.push(match.player1);
+                if (match.player2) players.push(match.player2);
+            });
 
-    // Shuffle the winners for randomness
-    for (let i = winners.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [winners[i], winners[j]] = [winners[j], winners[i]];
-    }
+            // Shuffle the players array
+            for (let i = players.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [players[i], players[j]] = [players[j], players[i]];
+            }
 
-    // Create next round matches from the winners
-    const nextRound = [];
-    for (let i = 0; i < winners.length; i += 2) {
-        const player1 = winners[i];
-        const player2 = winners[i + 1] || null;
-        nextRound.push({ player1, player2, score1: 0, score2: 0, submitted: false });
-    }
+            // Recreate the matches with the shuffled players
+            const newRound = [];
+            for (let i = 0; i < players.length; i += 2) {
+                const player1 = players[i];
+                const player2 = players[i + 1] || null;
+                newRound.push({ player1, player2, score1: 0, score2: 0, submitted: false });
+            }
 
-    // If there's only one match left and it has no second player, it's a winner
-    if (nextRound.length === 1 && nextRound[0].player2 === null) {
-        if (treeSide === 'Left') {
-            leftTreeWinner = nextRound[0].player1;
-        } else {
-            rightTreeWinner = nextRound[0].player1;
+            // Replace the current round with the new randomized round
+            tree[roundIndex] = newRound;
+            renderBrackets();
         }
-        renderBrackets();
-        return;
-    }
-
-    // Add the next round to the tree
-    tree.push(nextRound);
-    renderBrackets();
-}
 
 
         function renderFinalMatch() {
@@ -374,8 +410,10 @@ if (isset($_GET['fetch_players'])) {
         }
 
         initializeTournament();
+
          // Add the beforeunload event listener towards the end of the script
-    window.addEventListener('beforeunload', function(event) {
+        window.addEventListener('beforeunload', function(event) {
+
         // Display a confirmation message to warn the user
         const confirmationMessage = 'Are you sure you want to leave? All tournament scores will be lost if you refresh the page!';
         
