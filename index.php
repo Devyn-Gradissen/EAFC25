@@ -101,7 +101,8 @@ if (isset($_GET['fetch_players'])) {
     </style>
 </head>
 <body>
-    <h1>Left-Right Bracket Tournament</h1>
+            <?php $db_handler->handler("navbar"); ?>
+    <h1></h1>
     <div class="tree-container">
         <div id="left-tree" class="bracket"></div>
         <div id="final-container">
@@ -135,20 +136,22 @@ if (isset($_GET['fetch_players'])) {
     let leftPlayers = [];
     let rightPlayers = [];
 
-    // Handle even and odd player cases
-    if (players.length % 2 === 0) {
-        // If even number of players, split normally
+    // If the number of players is not divisible by 4, ensure extra players are matched together
+    const remainder = players.length % 4;
+
+    if (remainder === 2) {
+        // Place two extra players in the same bracket to compete
         leftPlayers = players.slice(0, halfLength - 1); // All but the last two
         rightPlayers = players.slice(halfLength - 1);
-    } else {
-        // If odd number of players, leave one player in the left bracket
-        leftPlayers = players.slice(0, halfLength + 1);
-        rightPlayers = players.slice(halfLength + 1);
-    }
 
-    // Pair the last two players in the right bracket if even
-    if (players.length % 2 === 0) {
-        leftPlayers.push(rightPlayers.shift()); // Move one player to left to balance
+        // Move the two extra players into a single match in the left bracket
+        const extraPlayers = rightPlayers.splice(0, 2);
+        leftPlayers.push(extraPlayers[0]);
+        leftPlayers.push(extraPlayers[1]);
+    } else {
+        // Split players evenly when divisible by 4 or remaining odd players
+        leftPlayers = players.slice(0, halfLength);
+        rightPlayers = players.slice(halfLength);
     }
 
     initializeTree(leftPlayers, leftTreeRounds);
@@ -156,6 +159,7 @@ if (isset($_GET['fetch_players'])) {
 
     renderBrackets();
 }
+
 
 
         function initializeTree(players, treeRounds) {
