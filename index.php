@@ -374,6 +374,17 @@ if (isset($_GET['fetch_players'])) {
         }
 
         initializeTournament();
+         // Add the beforeunload event listener towards the end of the script
+    window.addEventListener('beforeunload', function(event) {
+        // Display a confirmation message to warn the user
+        const confirmationMessage = 'Are you sure you want to leave? All tournament scores will be lost if you refresh the page!';
+        
+        // Standard message (for most browsers)
+        event.returnValue = confirmationMessage; 
+
+        // Return the confirmation message (for some browsers)
+        return confirmationMessage;
+    });
     </script>
 </body>
 </html>
