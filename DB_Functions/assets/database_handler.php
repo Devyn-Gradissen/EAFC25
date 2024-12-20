@@ -160,7 +160,12 @@ class DB_Handler {
 
     public function navbar(){
 
-        ?> 
+        session_start(); // Start the session
+        if (!isset($_SESSION['is_logged_in']) || $_SESSION['is_logged_in'] !== true) {
+            return;
+        } else {
+
+            ?> 
         
             <style>
                 nav {
@@ -217,13 +222,15 @@ class DB_Handler {
             <nav>
                 <ul>
                     <li class="navbarLogo"><img src="./DB_Functions/assets/img/ea-removebg.png"></li>
-                    <li><a href="./index.php">Tournament</a></li>
+                    <li><a href="./tournament.php">Tournament</a></li>
                     <li><a href="./add_player.php">Add Player</a></li>
-                    <li><a href="./login.php">Admin</a></li>
+                    <li><a href="./logout.php">Logout</a></li>
                 </ul>
             </nav>
         
         <?php
+
+        }
 
     }
     
@@ -277,7 +284,7 @@ class DB_Handler {
             // Execute the query
             $stmt->execute();
 
-            echo "User successfully registered!";
+            // echo "User successfully registered!";
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
         }
@@ -310,6 +317,8 @@ class DB_Handler {
                 // Verify the password
                 if (password_verify($login['password'], $user['user_password'])) {
                     echo "Login successful!";
+                    $_SESSION['is_logged_in'] = true;
+                    header("Location: http://localhost/EAFC25/tournament.php");
                     // Optionally, set session variables or perform other login actions here
                 } else {
                     echo "Invalid username or password.";
@@ -334,6 +343,9 @@ class DB_Handler {
         // Decoding JSON_Array
         if ($new_player != NULL) {
             $new_player = json_decode($new_player, true);
+
+            $new_player['name'] = ucfirst(strtolower($new_player['name']));
+            $new_player['lname'] = ucfirst(strtolower($new_player['lname']));
 
             // trimming to just the Initial
             $only_initial = strtoupper(substr($new_player["lname"],0,1));

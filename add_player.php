@@ -13,6 +13,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Players</title>
         <link rel="stylesheet" href="./assets/css/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     </head>
 
     <style>
@@ -95,7 +96,14 @@
 
         .playerAdd {
             display: flex;
+            flex-direction: column;
             width: 50%;
+        }
+
+        .playerAdd h1,
+        .playerAdd h2,
+        .playerAdd p {
+            margin-left: 2rem
         }
 
         .playerTable {
@@ -142,6 +150,16 @@
                     }
 
                 ?>
+
+                <h1>Divisies</h1> <br>
+                <h2>Bij divisie vul je je Divisie in Division Rivals in!</h2> <br>
+                <p style="font-size: 20px;">
+                    Divisie 10-6: <i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i> Team <br>
+                    Divisie 5-2: <i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star-half" style="color: #07F468"></i> Team <br>
+                    Divisie 1: <i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i><i class="fa-solid fa-star" style="color: #07F468"></i> Team <br>
+                    <b>Soccer Aid</b> Team is gebanned
+                </p>
+
             </div>
 
             <div class="playerTable">
